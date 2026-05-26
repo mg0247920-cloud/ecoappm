@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoApp - Dashboard Interactivo de Economía</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        darkBg: '#090D1A',
+                        darkCard: '#131A30',
+                        accentGreen: '#10B981',
+                        accentBlue: '#3B82F6',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Animaciones personalizadas */
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090D1A;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1F2937;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #10B981;
+        }
+    </style>
+</head>
+<body class="bg-darkBg text-slate-100 font-sans h-full overflow-hidden flex flex-col">
+
+    <!-- APP WRAPPER -->
+    <div class="flex h-full w-full overflow-hidden">
+        
+        <!-- SIDEBAR DE NAVEGACIÓN (Para pantallas medianas y grandes) -->
+        <aside class="hidden md:flex flex-col w-64 bg-darkCard border-r border-slate-800 p-6 shrink-0 justify-between">
+            <div class="space-y-8">
+                <!-- App Logo -->
+                <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('home')">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-accentGreen to-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-900/30">
+                        <i class="fa-solid fa-chart-line text-darkBg text-lg font-extrabold"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-extrabold text-lg tracking-wider bg-gradient-to-r from-emerald-400 to-teal-200 bg-clip-text text-transparent">EcoApp</h1>
+                        <p class="text-[10px] text-slate-400 font-medium uppercase tracking-widest">Aprende Economía</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Links -->
+                <nav class="space-y-2">
+                    <button onclick="switchTab('home')" id="nav-home" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/50 hover:text-white transition-all font-semibold text-sm text-left">
+                        <i class="fa-solid fa-house w-5 text-center text-slate-400"></i> Inicio
+                    </button>
+                    <button onclick="switchTab('menu')" id="nav-menu" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/50 hover:text-white transition-all font-semibold text-sm text-left">
+                        <i class="fa-solid fa-compass w-5 text-center text-slate-400"></i> Módulos de Estudio
+                    </button>
+                    <button onclick="switchTab('summary')" id="nav-summary" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/50 hover:text-white transition-all font-semibold text-sm text-left">
+                        <i class="fa-solid fa-box-archive w-5 text-center text-slate-400"></i> Síntesis y Resúmenes
+                    </button>
+                    <button onclick="switchTab('extras')" id="nav-extras" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/50 hover:text-white transition-all font-semibold text-sm text-left">
+                        <i class="fa-solid fa-lightbulb w-5 text-center text-slate-400"></i> Extras y Panamá
+                    </button>
+                    <button onclick="switchTab('quiz-intro')" id="nav-quiz" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/50 hover:text-white transition-all font-semibold text-sm text-left">
+                        <i class="fa-solid fa-graduation-cap w-5 text-center text-slate-400"></i> Prueba Final (Quiz)
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Footer Sidebar / Progress Indicator -->
+            <div class="bg-slate-800/40 p-4 rounded-xl border border-slate-700/50">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs text-slate-400 font-bold">Progreso General</span>
+                    <span id="sidebar-progress-percent" class="text-xs font-bold text-accentGreen">0%</span>
+                </div>
+                <div class="w-full h-2 bg-slate-900 rounded-full overflow-hidden">
+                    <div id="sidebar-progress-bar" class="h-full bg-accentGreen transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="flex-1 flex flex-col h-full overflow-y-auto relative bg-gradient-to-b from-darkBg to-slate-950 pb-20 md:pb-0">
+            
+            <!-- TOP APP BAR -->
+            <header class="flex items-center justify-between px-6 md:px-10 py-4 border-b border-slate-800/50 backdrop-blur-md bg-darkBg/80 sticky top-0 z-40">
+                <div class="flex items-center gap-3 md:hidden" onclick="switchTab('home')">
+                    <div class="w-8 h-8 rounded-lg bg-accentGreen flex items-center justify-center">
+                        <i class="fa-solid fa-chart-line text-darkBg text-sm font-extrabold"></i>
+                    </div>
+                    <span class="font-bold text-md text-white">EcoApp</span>
+                </div>
+                
+                <div class="hidden md:block">
+                    <span class="text-xs text-slate-400 font-bold tracking-widest uppercase">Mesa de Trabajo</span>
+                    <h2 id="current-screen-title" class="text-lg font-bold text-white">Cargando aplicación...</h2>
+                </div>
+
+                <!-- Stats Badge -->
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800/60 border border-slate-700/80">
+                        <i class="fa-solid fa-trophy text-amber-400 text-sm"></i>
+                        <span id="global-score-badge" class="text-xs font-extrabold">Score: 0 pts</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- APP SCREENS CONTAINER -->
+            <div class="flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full">
+
+                <!-- SCREEN 1: HOME -->
+                <section id="screen-home" class="hidden fade-in space-y-8">
+                    <div class="bg-gradient-to-r from-darkCard to-slate-900 border border-slate-800 p-8 md:p-12 rounded-3xl flex flex-col md:flex-row items-center gap-8 shadow-xl relative overflow-hidden">
+                        <div class="absolute -right-20 -top-20 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div class="space-y-6 flex-1">
+                            <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-400 uppercase tracking-widest">Curso Interactivo</span>
+                            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
+                                Introducción a la <br><span class="bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">Economía y el Comercio</span>
+                            </h1>
+                            <p class="text-slate-300 text-base md:text-lg max-w-xl">
+                                Una experiencia interactiva de aprendizaje estructurada para comprender cómo funcionan los recursos del planeta, el comercio internacional y las fuerzas financieras que rigen la sociedad actual.
+                            </p>
+                            <div class="flex flex-wrap gap-4 pt-2">
+                                <button onclick="switchTab('menu')" class="px-6 py-3.5 bg-accentGreen hover:bg-emerald-400 text-darkBg font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-2 transform hover:-translate-y-0.5">
+                                    Comenzar Estudio <i class="fa-solid fa-play"></i>
+                                </button>
+                                <button onclick="switchTab('quiz-intro')" class="px-6 py-3.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl border border-slate-700 transition-all flex items-center gap-2">
+                                    Prueba Final <i class="fa-solid fa-circle-question"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="w-full md:w-1/3 max-w-xs flex justify-center">
+                            <div class="relative w-48 h-48 md:w-64 md:h-64 rounded-2xl bg-slate-800 overflow-hidden shadow-2xl border-4 border-slate-700">
+                                <div class="absolute inset-0 bg-gradient-to-t from-darkBg to-transparent z-10"></div>
+                                <div class="absolute inset-0 flex flex-col justify-end p-4 z-20">
+                                    <span class="text-xs text-emerald-400 font-bold">Unidad 1</span>
+                                    <h4 class="text-sm font-bold text-white">Fundamentos y Proceso</h4>
+                                </div>
+                                <!-- fallback structural vector representation using pure tailwind gradients/shapes inside -->
+                                <div class="absolute inset-0 bg-gradient-to-br from-indigo-900 via-slate-950 to-emerald-950 flex items-center justify-center">
+                                    <i class="fa-solid fa-globe text-8xl text-emerald-500/20 animate-pulse"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Navigation Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div onclick="switchTab('menu')" class="bg-darkCard border border-slate-800/80 p-6 rounded-2xl hover:border-accentGreen/50 cursor-pointer transition-all group hover:-translate-y-1">
+                            <div class="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-accentGreen mb-4 group-hover:bg-accentGreen group-hover:text-darkBg transition-all">
+                                <i class="fa-solid fa-book-open text-xl"></i>
+                            </div>
+                            <h3 class="font-bold text-lg text-white mb-1">Módulos Guía</h3>
+                            <p class="text-slate-400 text-xs leading-relaxed">Sigue paso a paso los 5 bloques temáticos estructurados con dinámicas de aprendizaje.</p>
+                        </div>
+                        <div onclick="switchTab('summary')" class="bg-darkCard border border-slate-800/80 p-6 rounded-2xl hover:border-accentGreen/50 cursor-pointer transition-all group hover:-translate-y-1">
+                            <div class="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-accentGreen mb-4 group-hover:bg-accentGreen group-hover:text-darkBg transition-all">
+                                <i class="fa-solid fa-layer-group text-xl"></i>
+                            </div>
+                            <h3 class="font-bold text-lg text-white mb-1">Síntesis Visual</h3>
+                            <p class="text-slate-400 text-xs leading-relaxed">Tablas comparativas rápidas y mapas mentales para repasar antes de tu prueba de rendimiento.</p>
+                        </div>
+                        <div onclick="switchTab('extras')" class="bg-darkCard border border-slate-800/80 p-6 rounded-2xl hover:border-accentGreen/50 cursor-pointer transition-all group hover:-translate-y-1">
+                            <div class="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-accentGreen mb-4 group-hover:bg-accentGreen group-hover:text-darkBg transition-all">
+                                <i class="fa-solid fa-lightbulb text-xl"></i>
+                            </div>
+                            <h3 class="font-bold text-lg text-white mb-1">Extras y Curiosidades</h3>
+                            <p class="text-slate-400 text-xs leading-relaxed">Aprende sobre la relación transdisciplinaria de la economía y analiza el caso práctico de Panamá.</p>
+                        </div>
+                        <div onclick="switchTab('quiz-intro')" class="bg-darkCard border border-slate-800/80 p-6 rounded-2xl hover:border-accentGreen/50 cursor-pointer transition-all group hover:-translate-y-1">
+                            <div class="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-accentGreen mb-4 group-hover:bg-accentGreen group-hover:text-darkBg transition-all">
+                                <i class="fa-solid fa-award text-xl"></i>
+                            </div>
+                            <h3 class="font-bold text-lg text-white mb-1">Evaluación Final</h3>
+                            <p class="text-slate-400 text-xs leading-relaxed">Prueba interactiva completa de 20 preguntas con explicaciones detalladas en cada respuesta.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SCREEN 2: MODULE INDEX -->
+                <section id="screen-menu" class="hidden fade-in space-y-6">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-2xl font-extrabold text-white">Módulos de Aprendizaje</h2>
+                            <p class="text-slate-400 text-sm">Elige cualquiera de los bloques para iniciar tu exploración interactiva.</p>
+                        </div>
+                        <div class="flex items-center gap-2 bg-slate-850 p-2 rounded-xl border border-slate-800">
+                            <span class="text-xs text-slate-400 px-2 font-semibold">Progreso de estudio:</span>
+                            <span id="modules-progress-badge" class="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-lg">0 / 5 Vistos</span>
+                        </div>
+                    </div>
+
+                    <!-- Grid of Modules -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Mod 1 -->
+                        <div onclick="openModule(1)" class="bg-darkCard border border-slate-800/80 rounded-2xl p-6 hover:border-emerald-500/40 cursor-pointer transition-all hover:shadow-lg hover:shadow-emerald-950/20 flex flex-col justify-between h-64 group relative overflow-hidden">
+                            <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/5 rounded-full pointer-events-none group-hover:scale-125 transition-all"></div>
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Bloque 01</span>
+                                    <span id="badge-mod-1" class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 uppercase">Sin iniciar</span>
+                                </div>
+                                <h3 class="text-xl font-bold text-white group-hover:text-emerald-400 transition-all">¿Qué es la Economía?</h3>
+                                <p class="text-slate-400 text-xs leading-relaxed line-clamp-3">Etimología de la palabra, definición científica, la escasez y la gran división estructural: microeconomía y macroeconomía.</p>
+                            </div>
+                            <span class="text-xs font-bold text-emerald-400 flex items-center gap-1 mt-4">Explorar módulo <i class="fa-solid fa-arrow-right text-[10px]"></i></span>
+                        </div>
+                        <!-- Mod 2 -->
+                        <div onclick="openModule(2)" class="bg-darkCard border border-slate-800/80 rounded-2xl p-6 hover:border-emerald-500/40 cursor-pointer transition-all hover:shadow-lg hover:shadow-emerald-950/20 flex flex-col justify-between h-64 group relative overflow-hidden">
+                            <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/5 rounded-full pointer-events-none group-hover:scale-125 transition-all"></div>
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Bloque 02</span>
+                                    <span id="badge-mod-2" class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 uppercase">Sin iniciar</span>
+                                </div>
+                                <h3 class="text-xl font-bold text-white group-hover:text-emerald-400 transition-all">Factores de la Producción</h3>
+                                <p class="text-slate-400 text-xs leading-relaxed line-clamp-3">Los pilares que hacen posible crear riqueza: Tierra, Trabajo, Capital y la moderna adición de la Tecnología.</p>
+                            </div>
+                            <span class="text-xs font-bold text-emerald-400 flex items-center gap-1 mt-4">Explorar módulo <i class="fa-solid fa-arrow-right text-[10px]"></i></span>
+                        </div>
+                        <!-- Mod 3 -->
+                        <div onclick="openModule(3)" class="bg-darkCard border border-slate-800/80 rounded-2xl p-6 hover:border-emerald-500/40 cursor-pointer transition-all hover:shadow-lg hover:shadow-emerald-950/20 flex flex-col justify-between h-64 group relative overflow-hidden">
+                            <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/5 rounded-full pointer-events-none group-hover:scale-125 transition-all"></div>
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Bloque 03</span>
+                                    <span id="badge-mod-3" class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 uppercase">Sin iniciar</span>
+                                </div>
+                                <h3 class="text-xl font-bold text-white group-hover:text-emerald-400 transition-all">Las 4 Preguntas Básicas</h3>
+                                <p class="text-slate-400 text-xs leading-relaxed line-clamp-3">El desafío de toda sociedad organizada: ¿Qué producir?, ¿Cómo producir?, ¿Cuánto producir? y ¿Para quién producir?</p>
+                            </div>
+                            <span class="text-xs font-bold text-emerald-400 flex items-center gap-1 mt-4">Explorar módulo <i class="fa-solid fa-arrow-right text-[10px]"></i></span>
+                        </div>
+                        <!-- Mod 4 -->
+                        <div onclick="openModule(4)" class="bg-darkCard border border-slate-800/80 rounded-2xl p-6 hover:border-emerald-500/40 cursor-pointer transition-all hover:shadow-lg hover:shadow-emerald-950/20 flex flex-col justify-between h-64 group relative overflow-hidden">
+                            <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/5 rounded-full pointer-events-none group-hover:scale-125 transition-all"></div>
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Bloque 04</span>
+                                    <span id="badge-mod-4" class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 uppercase">Sin iniciar</span>
+                                </div>
+                                <h3 class="text-xl font-bold text-white group-hover:text-emerald-400 transition-all">Etapas del Proceso Económico</h3>
+                                <p class="text-slate-400 text-xs leading-relaxed line-clamp-3">El camino que recorren los recursos: Producción, Circulación, Distribución y el Consumo final.</p>
+                            </div>
+                            <span class="text-xs font-bold text-emerald-400 flex items-center gap-1 mt-4">Explorar módulo <i class="fa-solid fa-arrow-right text-[10px]"></i></span>
+                        </div>
+                        <!-- Mod 5 -->
+                        <div onclick="openModule(5)" class="bg-darkCard border border-slate-800/80 rounded-2xl p-6 hover:border-emerald-500/40 cursor-pointer transition-all hover:shadow-lg hover:shadow-emerald-950/20 flex flex-col justify-between h-64 group relative overflow-hidden">
+                            <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/5 rounded-full pointer-events-none group-hover:scale-125 transition-all"></div>
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Bloque 05</span>
+                                    <span id="badge-mod-5" class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 uppercase">Sin iniciar</span>
+                                </div>
+                                <h3 class="text-xl font-bold text-white group-hover:text-emerald-400 transition-all">Importancia del Comercio</h3>
+                                <p class="text-slate-400 text-xs leading-relaxed line-clamp-3">Por qué ningún país puede subsistir aislado. Intercambios internos y externos, exportaciones e importaciones globales.</p>
+                            </div>
+                            <span class="text-xs font-bold text-emerald-400 flex items-center gap-1 mt-4">Explorar módulo <i class="fa-solid fa-arrow-right text-[10px]"></i></span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- MODULE VIEW (DYNAMICALLY LOADED BASED ON ACTIVE STATE) -->
+                <section id="screen-module-viewer" class="hidden fade-in space-y-6">
+                    <!-- Module navigation control panel -->
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                        <button onclick="switchTab('menu')" class="flex items-center gap-2 text-slate-400 hover:text-white transition-all text-sm font-semibold">
+                            <i class="fa-solid fa-arrow-left"></i> Volver a Módulos
+                        </button>
+                        <div class="flex items-center gap-2">
+                            <button id="btn-prev-mod" class="p-2 bg-slate-800 rounded-lg hover:bg-slate-700 text-white disabled:opacity-30 disabled:pointer-events-none transition-all"><i class="fa-solid fa-chevron-left"></i></button>
+                            <span id="mod-viewer-tracker" class="text-xs font-bold text-slate-400 px-2">Módulo 1 / 5</span>
+                            <button id="btn-next-mod" class="p-2 bg-slate-800 rounded-lg hover:bg-slate-700 text-white disabled:opacity-30 disabled:pointer-events-none transition-all"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Container for module data -->
+                    <div id="module-dynamic-content" class="space-y-8">
+                        <!-- Loaded dynamically via javascript to guarantee smooth interaction -->
+                    </div>
+                </section>
+
+                <!-- SCREEN 3: SÍNTESIS / RESÚMENES -->
+                <section id="screen-summary" class="hidden fade-in space-y-8">
+                    <div>
+                        <h2 class="text-2xl font-extrabold text-white">Síntesis y Resúmenes Visuales</h2>
+                        <p class="text-slate-400 text-sm">Estructuras concentradas de información para agilizar la memoria visual antes de evaluar tus conocimientos.</p>
+                    </div>
+
+                    <!-- Interactive Syntheses Accordion/Cards -->
+                    <div class="space-y-6">
+                        <!-- Synthesis 1: Ramas de la economía -->
+                        <div class="bg-darkCard border border-slate-800 rounded-2xl overflow-hidden">
+                            <div class="bg-slate-800/50 px-6 py-4 flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                                        <i class="fa-solid fa-network-wired"></i>
+                                    </div>
+                                    <h3 class="font-bold text-white">Estructura Global de la Economía</h3>
+                                </div>
+                                <span class="text-xs text-slate-500 font-bold">Mapa Comparativo</span>
+                            </div>
+                            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="bg-slate-900/40 p-5 rounded-xl border border-slate-800">
+                                    <h4 class="text-accentGreen font-bold mb-3 flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-accentGreen"></span> Microeconomía
+                                    </h4>
+                                    <p class="text-slate-300 text-sm leading-relaxed mb-4">Se encarga de estudiar de manera individual el comportamiento de los agentes económicos del mercado de forma minuciosa.</p>
+                                    <div class="bg-darkBg/60 p-3 rounded-lg space-y-1.5 text-xs text-slate-400">
+                                        <div><strong class="text-slate-300">Unidades de estudio:</strong> Las familias, las empresas, el consumidor individual, el mercado de un producto específico.</div>
+                                        <div><strong class="text-slate-300">Ejemplo:</strong> La fluctuación en el precio del aguacate en un mercado local.</div>
+                                    </div>
+                                </div>
+                                <div class="bg-slate-900/40 p-5 rounded-xl border border-slate-800">
+                                    <h4 class="text-sky-400 font-bold mb-3 flex items-center gap-2">
+                                        <span class="w-2 h-2 rounded-full bg-sky-400"></span> Macroeconomía
+                                    </h4>
+                                    <p class="text-slate-300 text-sm leading-relaxed mb-4">Examina el funcionamiento y los fenómenos económicos agregados a nivel país, región o global.</p>
+                                    <div class="bg-darkBg/60 p-3 rounded-lg space-y-1.5 text-xs text-slate-400">
+                                        <div><strong class="text-slate-300">Unidades de estudio:</strong> El Estado, el Producto Interno Bruto (PIB), la inflación, el desempleo nacional, el comercio exterior.</div>
+                                        <div><strong class="text-slate-300">Ejemplo:</strong> La tasa de inflación interanual de la República de Panamá.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Synthesis 2: Factores productivos en resumen -->
+                        <div class="bg-darkCard border border-slate-800 rounded-2xl p-6">
+                            <h3 class="font-bold text-lg text-white mb-4 flex items-center gap-2">
+                                <i class="fa-solid fa-table-list text-emerald-400"></i> Tabla de Retorno de Factores
+                            </h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm text-left border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-slate-850 text-slate-400 font-bold">
+                                            <th class="py-3 px-4">Factor Productivo</th>
+                                            <th class="py-3 px-4">Definición</th>
+                                            <th class="py-3 px-4 text-accentGreen">Retribución Económica</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-800/50">
+                                        <tr class="hover:bg-slate-800/20">
+                                            <td class="py-4 px-4 font-bold text-white">Tierra (Recursos Naturales)</td>
+                                            <td class="py-4 px-4 text-slate-400">Los dones de la naturaleza como tierras de cultivo, minerales, reservas hídricas y forestales.</td>
+                                            <td class="py-4 px-4 font-extrabold text-emerald-400">Renta o Arrendamiento</td>
+                                        </tr>
+                                        <tr class="hover:bg-slate-800/20">
+                                            <td class="py-4 px-4 font-bold text-white">Trabajo (Fuerza Humana)</td>
+                                            <td class="py-4 px-4 text-slate-400">Esfuerzo físico o intelectual que las personas dedican a producir bienes y servicios.</td>
+                                            <td class="py-4 px-4 font-extrabold text-emerald-400">Salario o Sueldo</td>
+                                        </tr>
+                                        <tr class="hover:bg-slate-800/20">
+                                            <td class="py-4 px-4 font-bold text-white">Capital (Bienes de Inversión)</td>
+                                            <td class="py-4 px-4 text-slate-400">Herramientas, equipos, maquinaria, fábricas e infraestructura utilizada en la producción.</td>
+                                            <td class="py-4 px-4 font-extrabold text-emerald-400">Interés o Rendimiento</td>
+                                        </tr>
+                                        <tr class="hover:bg-slate-800/20">
+                                            <td class="py-4 px-4 font-bold text-white">Tecnología (Conocimiento)</td>
+                                            <td class="py-4 px-4 text-slate-400">Saber científico e innovación aplicados para aumentar la eficiencia y optimización de los procesos.</td>
+                                            <td class="py-4 px-4 font-extrabold text-emerald-400">Regalías o Plusvalía de Innovación</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SCREEN 4: EXTRAS & PANAMA CASE -->
+                <section id="screen-extras" class="hidden fade-in space-y-8">
+                    <div>
+                        <h2 class="text-2xl font-extrabold text-white">Sección de Profundización Educativa</h2>
+                        <p class="text-slate-400 text-sm">Explora cómo la economía interactúa con la vida real, mitos de mercado y el caso estratégico de Panamá.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Relación con otras ciencias -->
+                        <div class="bg-darkCard border border-slate-800 rounded-2xl p-6 lg:col-span-2 space-y-6">
+                            <h3 class="font-bold text-lg text-white flex items-center gap-2">
+                                <i class="fa-solid fa-flask text-emerald-400"></i> Relación Interdisciplinaria de la Economía
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-2">
+                                    <h4 class="font-bold text-white text-sm flex items-center gap-2">
+                                        <i class="fa-solid fa-scale-balanced text-amber-500"></i> Con el Derecho
+                                    </h4>
+                                    <p class="text-slate-400 text-xs leading-relaxed">Las actividades de producción, distribución y comercio requieren leyes y reglamentos claros (derechos de propiedad, leyes comerciales) para operar de manera justa y predecible en la sociedad.</p>
+                                </div>
+                                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-2">
+                                    <h4 class="font-bold text-white text-sm flex items-center gap-2">
+                                        <i class="fa-solid fa-users text-sky-400"></i> Con la Sociología
+                                    </h4>
+                                    <p class="text-slate-400 text-xs leading-relaxed">Estudia el comportamiento de los colectivos sociales. La economía utiliza este conocimiento para predecir tendencias de consumo masivo, dinámicas laborales e impactos de políticas públicas.</p>
+                                </div>
+                                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-2">
+                                    <h4 class="font-bold text-white text-sm flex items-center gap-2">
+                                        <i class="fa-solid fa-calculator text-emerald-500"></i> Con la Matemática y Estadística
+                                    </h4>
+                                    <p class="text-slate-400 text-xs leading-relaxed">Proporcionan modelos matemáticos y herramientas de recopilación de datos para medir tendencias macroeconómicas, PIB, fluctuación de mercados y estimar presupuestos públicos.</p>
+                                </div>
+                                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-2">
+                                    <h4 class="font-bold text-white text-sm flex items-center gap-2">
+                                        <i class="fa-solid fa-map text-red-400"></i> Con la Geografía
+                                    </h4>
+                                    <p class="text-slate-400 text-xs leading-relaxed">Establece la distribución espacial de los recursos naturales y las rutas logísticas que determinan las ventajas competitivas comerciales de los diferentes estados.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Caso Panamá -->
+                        <div class="bg-emerald-950/20 border border-emerald-500/20 rounded-2xl p-6 flex flex-col justify-between">
+                            <div class="space-y-4">
+                                <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-extrabold uppercase tracking-wider rounded">Caso de Estudio</span>
+                                <h3 class="font-bold text-xl text-white">La Interdependencia en Panamá</h3>
+                                <p class="text-slate-300 text-xs leading-relaxed">
+                                    Un claro ejemplo de la importancia del comercio exterior es la República de Panamá. Al carecer de industrias pesadas de manufactura automotriz, Panamá importa todos sus vehículos del extranjero.
+                                </p>
+                                <p class="text-slate-300 text-xs leading-relaxed">
+                                    Para costear estas importaciones de bienes, Panamá aprovecha su excelente ubicación geográfica para exportar servicios internacionales masivos: el tránsito marítimo por el Canal, servicios de logística aeroportuaria (Hub de las Américas) y servicios financieros avanzados. Esto demuestra cómo el comercio equilibra el bienestar de una nación.
+                                </p>
+                            </div>
+                            <div class="pt-4 border-t border-emerald-500/10 flex items-center gap-3">
+                                <i class="fa-solid fa-anchor text-emerald-400 text-lg"></i>
+                                <span class="text-xs text-emerald-300 font-semibold">Ubicación estratégica y globalización</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SCREEN 5: QUIZ INTRO -->
+                <section id="screen-quiz-intro" class="hidden fade-in text-center max-w-2xl mx-auto space-y-8 py-10">
+                    <div class="w-24 h-24 rounded-3xl bg-emerald-500/10 text-accentGreen flex items-center justify-center mx-auto text-4xl shadow-xl shadow-emerald-950/20 border border-emerald-500/20">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <div class="space-y-4">
+                        <h2 class="text-3xl font-extrabold text-white">Prueba Final de Conocimientos</h2>
+                        <p class="text-slate-300 text-base leading-relaxed">
+                            Pon a prueba lo aprendido. Este examen consta de <strong>20 preguntas reales y secuenciales</strong> sobre economía general, factores productivos, procesos y el comercio internacional.
+                        </p>
+                    </div>
+                    
+                    <div class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800 text-left grid grid-cols-2 gap-4">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-circle-question text-accentGreen text-lg"></i>
+                            <div>
+                                <h4 class="font-bold text-white text-sm">20 Reactivos</h4>
+                                <p class="text-slate-500 text-[11px]">Preguntas variadas de opción múltiple.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-bolt text-accentGreen text-lg"></i>
+                            <div>
+                                <h4 class="font-bold text-white text-sm">Feedback Inmediato</h4>
+                                <p class="text-slate-500 text-[11px]">Explicación constructiva de cada respuesta.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="startQuiz()" class="px-8 py-4 bg-accentGreen hover:bg-emerald-400 text-darkBg font-extrabold rounded-xl text-lg tracking-wide shadow-lg shadow-emerald-500/20 transition-all">
+                        ¡COMENZAR EXAMEN AHORA!
+                    </button>
+                </section>
+
+                <!-- SCREEN 6: QUIZ ACTIVE -->
+                <section id="screen-quiz-active" class="hidden fade-in max-w-3xl mx-auto space-y-6">
+                    <!-- Progress top bar -->
+                    <div class="flex justify-between items-center text-xs font-bold text-slate-400 mb-2">
+                        <span id="quiz-question-counter">PREGUNTA 1 DE 20</span>
+                        <span id="quiz-live-score" class="text-accentGreen">PUNTAJE: 0 pts</span>
+                    </div>
+                    
+                    <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                        <div id="quiz-progress-fill" class="h-full bg-accentGreen transition-all duration-300" style="width: 5%"></div>
+                    </div>
+
+                    <!-- Question Card -->
+                    <div class="bg-darkCard border border-slate-800 p-6 md:p-8 rounded-2xl shadow-xl space-y-6">
+                        <h3 id="quiz-question-text" class="text-lg md:text-xl font-bold text-white leading-relaxed"></h3>
+                        
+                        <!-- Options container -->
+                        <div id="quiz-options-container" class="space-y-3">
+                            <!-- Dynamic choices will be rendered here -->
+                        </div>
+
+                        <!-- Feedback Box (Hidden by default) -->
+                        <div id="quiz-feedback-box" class="hidden p-5 rounded-xl border transition-all duration-350 space-y-2">
+                            <h4 id="quiz-feedback-title" class="font-extrabold text-sm flex items-center gap-2"></h4>
+                            <p id="quiz-feedback-text" class="text-xs text-slate-300 leading-relaxed"></p>
+                        </div>
+
+                        <!-- Action Button -->
+                        <div class="flex justify-end pt-2">
+                            <button id="quiz-action-btn" class="px-6 py-3 bg-slate-800 text-white font-bold rounded-xl border border-slate-700 hover:bg-slate-700 disabled:opacity-40 transition-all flex items-center gap-2">
+                                Verificar Respuesta
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SCREEN 7: QUIZ RESULT -->
+                <section id="screen-quiz-result" class="hidden fade-in text-center max-w-xl mx-auto space-y-8 py-10">
+                    <div class="w-24 h-24 rounded-full bg-emerald-500/10 text-accentGreen flex items-center justify-center mx-auto text-5xl shadow-xl border border-emerald-500/20">
+                        <i class="fa-solid fa-trophy animate-bounce"></i>
+                    </div>
+                    <div class="space-y-2">
+                        <h2 class="text-3xl font-extrabold text-white">¡Examen Completado!</h2>
+                        <p class="text-slate-400 text-sm">Revisa los resultados obtenidos de tu estudio de economía.</p>
+                    </div>
+
+                    <div class="bg-darkCard border border-slate-800 p-8 rounded-2xl shadow-xl grid grid-cols-2 gap-6 divide-x divide-slate-800">
+                        <div>
+                            <span class="text-slate-500 text-xs font-bold uppercase tracking-wider block mb-1">Puntuación Final</span>
+                            <span id="quiz-final-score" class="text-3xl md:text-4xl font-extrabold text-white">0 pts</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 text-xs font-bold uppercase tracking-wider block mb-1">Efectividad</span>
+                            <span id="quiz-final-efficiency" class="text-3xl md:text-4xl font-extrabold text-accentGreen">0%</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button onclick="startQuiz()" class="px-6 py-3 bg-accentGreen hover:bg-emerald-400 text-darkBg font-bold rounded-xl shadow-lg shadow-emerald-500/10 transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-rotate-right"></i> Volver a Intentar
+                        </button>
+                        <button onclick="switchTab('menu')" class="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl border border-slate-700 transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-book"></i> Repasar Módulos
+                        </button>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- BOTTOM MOBILE NAVIGATION BAR -->
+            <nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-darkCard border-t border-slate-800 flex items-center justify-around px-4 z-40 backdrop-blur-md">
+                <button onclick="switchTab('home')" class="flex flex-col items-center gap-1 text-slate-400 focus:text-accentGreen">
+                    <i class="fa-solid fa-house text-lg"></i>
+                    <span class="text-[9px] font-bold">Inicio</span>
+                </button>
+                <button onclick="switchTab('menu')" class="flex flex-col items-center gap-1 text-slate-400 focus:text-accentGreen">
+                    <i class="fa-solid fa-compass text-lg"></i>
+                    <span class="text-[9px] font-bold">Módulos</span>
+                </button>
+                <button onclick="switchTab('summary')" class="flex flex-col items-center gap-1 text-slate-400 focus:text-accentGreen">
+                    <i class="fa-solid fa-box-archive text-lg"></i>
+                    <span class="text-[9px] font-bold">Resúmenes</span>
+                </button>
+                <button onclick="switchTab('quiz-intro')" class="flex flex-col items-center gap-1 text-slate-400 focus:text-accentGreen">
+                    <i class="fa-solid fa-graduation-cap text-lg"></i>
+                    <span class="text-[9px] font-bold">Quiz</span>
+                </button>
+            </nav>
+        </main>
+    </div>
+
+    <!-- CORE LOGIC / JAVASCRIPT STATE ENGINE -->
+    <script>
+        // Module Data Structure
+        const modulesData = {
+            1: {
+                title: "Bloque 1: ¿Qué es la Economía?",
+                content: `
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="space-y-6">
+                            <div class="space-y-2">
+                                <span class="text-xs text-accentGreen font-extrabold tracking-widest uppercase">Etimología y Definición</span>
+                                <h3 class="text-2xl font-bold text-white">El Arte de Administrar la Escasez</h3>
+                            </div>
+                            <p class="text-slate-300 text-sm leading-relaxed">
+                                Proviene de las raíces griegas <strong class="text-accentGreen">OIKOS</strong> (casa, hogar, patrimonio) y <strong class="text-accentGreen">NOMOS</strong> (administración, regla o ley). Originalmente se refería a la gestión prudente de los bienes familiares.
+                            </p>
+                            <p class="text-slate-300 text-sm leading-relaxed">
+                                En la era moderna, se define como la <strong class="text-slate-100">ciencia social</strong> encargada de estudiar cómo los hombres y las sociedades escogen el uso de recursos productivos escasos para producir bienes y distribuirlos para el consumo.
+                            </p>
+                            <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 space-y-1">
+                                <span class="text-xs text-slate-500 font-bold uppercase">El Principio de Escasez</span>
+                                <p class="text-xs text-slate-400 leading-relaxed">Las necesidades humanas son prácticamente infinitas, pero los recursos naturales y financieros para satisfacerlas son limitados. Esto obliga a priorizar y tomar decisiones de costo de oportunidad constantemente.</p>
+                            </div>
+                        </div>
+                        <div class="space-y-6">
+                            <div class="bg-darkCard border border-slate-800 p-6 rounded-2xl relative overflow-hidden group">
+                                <h4 class="font-bold text-lg text-white mb-2">Las Grandes Divisiones</h4>
+                                <p class="text-slate-400 text-xs mb-4">Para facilitar su estudio, la ciencia económica se ramifica de forma organizada:</p>
+                                <div class="space-y-3">
+                                    <div class="p-3 bg-slate-900/50 rounded-lg hover:border hover:border-accentGreen/30 transition-all cursor-pointer">
+                                        <h5 class="font-bold text-sm text-accentGreen">Microeconomía</h5>
+                                        <p class="text-xs text-slate-400">Estudia de manera individual la toma de decisiones de familias, empresas e individuos en mercados específicos.</p>
+                                    </div>
+                                    <div class="p-3 bg-slate-900/50 rounded-lg hover:border hover:border-accentGreen/30 transition-all cursor-pointer">
+                                        <h5 class="font-bold text-sm text-sky-400">Macroeconomía</h5>
+                                        <p class="text-xs text-slate-400">Estudia los fenómenos agregados de toda una sociedad o nación: inflación total, balanza de pagos, PIB y tasas de empleo.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            2: {
+                title: "Bloque 2: Factores de la Producción",
+                content: `
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="space-y-6">
+                            <div class="space-y-2">
+                                <span class="text-xs text-accentGreen font-extrabold tracking-widest uppercase">Los Pilares del Desarrollo</span>
+                                <h3 class="text-2xl font-bold text-white">Los Componentes del Engranaje Productivo</h3>
+                            </div>
+                            <p class="text-slate-300 text-sm leading-relaxed">
+                                Para fabricar bienes útiles que satisfagan necesidades primarias o secundarias, es obligatorio combinar recursos iniciales denominados <strong class="text-accentGreen">Factores de la Producción</strong>.
+                            </p>
+                            
+                            <!-- Interactive Grid Inside -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="p-4 bg-slate-900/60 rounded-xl border border-slate-800 hover:border-accentGreen/30 transition-all cursor-pointer">
+                                    <h4 class="font-bold text-white text-sm mb-1"><i class="fa-solid fa-mountain text-emerald-500 mr-2"></i>Tierra</h4>
+                                    <p class="text-slate-400 text-[11px] leading-relaxed">Recursos naturales dados por el planeta sin intervención humana: minerales, agua, cultivos.</p>
+                                </div>
+                                <div class="p-4 bg-slate-900/60 rounded-xl border border-slate-800 hover:border-accentGreen/30 transition-all cursor-pointer">
+                                    <h4 class="font-bold text-white text-sm mb-1"><i class="fa-solid fa-person-digging text-amber-500 mr-2"></i>Trabajo</h4>
+                                    <p class="text-slate-400 text-[11px] leading-relaxed">Fuerza muscular e intelectual que los seres humanos destinan al esfuerzo laboral.</p>
+                                </div>
+                                <div class="p-4 bg-slate-900/60 rounded-xl border border-slate-800 hover:border-accentGreen/30 transition-all cursor-pointer">
+                                    <h4 class="font-bold text-white text-sm mb-1"><i class="fa-solid fa-gears text-sky-500 mr-2"></i>Capital</h4>
+                                    <p class="text-slate-400 text-[11px] leading-relaxed">Bienes duraderos que no se consumen directamente (máquinas, herramientas, infraestructura).</p>
+                                </div>
+                                <div class="p-4 bg-slate-900/60 rounded-xl border border-slate-800 hover:border-accentGreen/30 transition-all cursor-pointer">
+                                    <h4 class="font-bold text-white text-sm mb-1"><i class="fa-solid fa-microchip text-rose-500 mr-2"></i>Tecnología</h4>
+                                    <p class="text-slate-400 text-[11px] leading-relaxed">Estructura del saber científico aplicado para maximizar rendimientos.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-6">
+                            <div class="bg-darkCard border border-slate-800 p-6 rounded-2xl relative">
+                                <h4 class="font-bold text-lg text-white mb-2">Retribución de Factores</h4>
+                                <p class="text-slate-400 text-xs mb-4">Ningún factor productivo se aporta de forma gratuita; todos exigen una compensación en los mercados de factores:</p>
+                                <ul class="space-y-2 text-xs">
+                                    <li class="flex justify-between items-center p-2.5 bg-slate-900 rounded-lg">
+                                        <span class="text-slate-400 font-medium">Uso de la Tierra o Recursos</span>
+                                        <span class="text-accentGreen font-bold">Renta / Alquiler</span>
+                                    </li>
+                                    <li class="flex justify-between items-center p-2.5 bg-slate-900 rounded-lg">
+                                        <span class="text-slate-400 font-medium">Fuerza de Trabajo Humano</span>
+                                        <span class="text-accentGreen font-bold">Salario / Sueldo</span>
+                                    </li>
+                                    <li class="flex justify-between items-center p-2.5 bg-slate-900 rounded-lg">
+                                        <span class="text-slate-400 font-medium">Inversión de Capital Físico</span>
+                                        <span class="text-accentGreen font-bold">Interés / Dividendo</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            3: {
+                title: "Bloque 3: Las 4 Preguntas Básicas de la Economía",
+                content: `
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="space-y-6">
+                            <div class="space-y-2">
+                                <span class="text-xs text-accentGreen font-extrabold tracking-widest uppercase">El Conflicto de la Distribución</span>
+                                <h3 class="text-2xl font-bold text-white">Los Cuatro Interrogantes Organizacionales</h3>
+                            </div>
+                            <p class="text-slate-300 text-sm leading-relaxed">
+                                Dado que no podemos generar todos los bienes posibles con recursos finitos, cualquier modelo económico (capitalista, mixto o de planificación central) debe contestar eficientemente estas cuatro interrogantes estructurales:
+                            </p>
+                            
+                            <!-- Interactive timeline display -->
+                            <div class="space-y-3">
+                                <div class="flex items-start gap-3 p-3 bg-slate-900/60 rounded-xl border border-slate-800">
+                                    <span class="w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-bold flex items-center justify-center shrink-0">1</span>
+                                    <div>
+                                        <h4 class="font-bold text-white text-sm">¿Qué producir?</h4>
+                                        <p class="text-slate-400 text-[11px]">Decisión basada en las necesidades imperativas de los ciudadanos y los recursos a mano.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3 p-3 bg-slate-900/60 rounded-xl border border-slate-800">
+                                    <span class="w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-bold flex items-center justify-center shrink-0">2</span>
+                                    <div>
+                                        <h4 class="font-bold text-white text-sm">¿Cómo producir?</h4>
+                                        <p class="text-slate-400 text-[11px]">Seleccionar las fuentes de energía, técnicas de manufacturación, nivel tecnológico y combinación de factores productivos.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3 p-3 bg-slate-900/60 rounded-xl border border-slate-800">
+                                    <span class="w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-bold flex items-center justify-center shrink-0">3</span>
+                                    <div>
+                                        <h4 class="font-bold text-white text-sm">¿Cuánto producir?</h4>
+                                        <p class="text-slate-400 text-[11px]">Estimar cuantitativamente las unidades demandadas por el mercado para evitar desabastecimientos (escasez) o sobreproducción (pérdidas).</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3 p-3 bg-slate-900/60 rounded-xl border border-slate-800">
+                                    <span class="w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-bold flex items-center justify-center shrink-0">4</span>
+                                    <div>
+                                        <h4 class="font-bold text-white text-sm">¿Para quién producir?</h4>
+                                        <p class="text-slate-400 text-[11px]">La asignación del público meta; determinar cómo se va a repartir e intercambiar la riqueza generada.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-center bg-darkCard border border-slate-800 rounded-2xl p-6 relative">
+                            <div class="text-center space-y-4">
+                                <div class="text-5xl text-accentGreen"><i class="fa-solid fa-puzzle-piece"></i></div>
+                                <h4 class="font-bold text-white">Sistemas Económicos</h4>
+                                <p class="text-slate-400 text-xs leading-relaxed max-w-sm mx-auto">
+                                    La forma en que las naciones resuelven estas preguntas define su modelo: de Mercado Libre (los consumidores deciden), Planificación Central (el Estado decide) o Economía Mixta (fórmulas híbridas).
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            4: {
+                title: "Bloque 4: Etapas del Proceso Económico",
+                content: `
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="space-y-6">
+                            <div class="space-y-2">
+                                <span class="text-xs text-accentGreen font-extrabold tracking-widest uppercase">El Ciclo de los Bienes</span>
+                                <h3 class="text-2xl font-bold text-white">Las Cuatro Etapas del Circuito Económico</h3>
+                            </div>
+                            <p class="text-slate-300 text-sm leading-relaxed">
+                                Las actividades que configuran la vida económica de una comunidad no ocurren de manera aislada; siguen un orden cronológico y circular continuo:
+                            </p>
+                            
+                            <!-- Stepper Diagram -->
+                            <div class="space-y-4 relative pl-6 border-l border-emerald-500/20">
+                                <div class="relative space-y-1">
+                                    <span class="absolute -left-9 top-1 w-6 h-6 rounded-full bg-emerald-500 text-darkBg text-xs font-extrabold flex items-center justify-center">1</span>
+                                    <h4 class="font-bold text-white text-sm">Producción</h4>
+                                    <p class="text-slate-400 text-xs">Transformación de materia prima e insumos en bienes elaborados utilizando factores productivos.</p>
+                                </div>
+                                <div class="relative space-y-1">
+                                    <span class="absolute -left-9 top-1 w-6 h-6 rounded-full bg-emerald-500 text-darkBg text-xs font-extrabold flex items-center justify-center">2</span>
+                                    <h4 class="font-bold text-white text-sm">Circulación</h4>
+                                    <p class="text-slate-400 text-xs">Fase intermedia de transporte, distribución logística e intercambio de mercancías en los mercados físicos o digitales.</p>
+                                </div>
+                                <div class="relative space-y-1">
+                                    <span class="absolute -left-9 top-1 w-6 h-6 rounded-full bg-emerald-500 text-darkBg text-xs font-extrabold flex items-center justify-center">3</span>
+                                    <h4 class="font-bold text-white text-sm">Distribución</h4>
+                                    <p class="text-slate-400 text-xs">El reparto de las riquezas y plusvalías monetarias a los propietarios de los factores de producción en forma de salarios, dividendos y rentas.</p>
+                                </div>
+                                <div class="relative space-y-1">
+                                    <span class="absolute -left-9 top-1 w-6 h-6 rounded-full bg-emerald-500 text-darkBg text-xs font-extrabold flex items-center justify-center">4</span>
+                                    <h4 class="font-bold text-white text-sm">Consumo</h4>
+                                    <p class="text-slate-400 text-xs">La aplicación última de los bienes creados para satisfacer directamente las necesidades físicas o intelectuales del consumidor final.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-center bg-darkCard border border-slate-800 rounded-2xl p-6 relative">
+                            <div class="text-center space-y-4">
+                                <div class="text-5xl text-accentGreen"><i class="fa-solid fa-arrows-spin animate-spin-slow"></i></div>
+                                <h4 class="font-bold text-white">Carácter Circular</h4>
+                                <p class="text-slate-400 text-xs leading-relaxed max-w-sm mx-auto">
+                                    El circuito se reinicia de inmediato: los consumidores, al recibir salarios durante la etapa de distribución, obtienen el presupuesto para realizar compras (consumo), inyectando fondos que las empresas utilizarán para volver a producir.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            5: {
+                title: "Bloque 5: Importancia del Comercio",
+                content: `
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="space-y-6">
+                            <div class="space-y-2">
+                                <span class="text-xs text-accentGreen font-extrabold tracking-widest uppercase">Globalización y Enlaces</span>
+                                <h3 class="text-2xl font-bold text-white">El Motor Comercial del Progreso</h3>
+                            </div>
+                            <p class="text-slate-300 text-sm leading-relaxed">
+                                Ninguna nación o comunidad cuenta con autosuficiencia absoluta para abastecer a su población. El <strong class="text-accentGreen">comercio</strong> es el puente del progreso: permite el intercambio recíproco de recursos, materias primas y tecnología especializada.
+                            </p>
+                            <p class="text-slate-300 text-sm leading-relaxed">
+                                Sin el flujo del comercio libre, muchas regiones estarían limitadas a consumir estrictamente lo cultivado o fabricado a nivel local, estancando su desarrollo.
+                            </p>
+                            <div class="grid grid-cols-2 gap-4 pt-2">
+                                <div class="p-4 bg-slate-900/60 rounded-xl border border-slate-800">
+                                    <h4 class="text-accentGreen font-bold text-xs uppercase mb-1">Comercio Interno</h4>
+                                    <p class="text-slate-400 text-[11px] leading-relaxed">Intercambio comercial libre dentro de las fronteras físicas e institucionales de un país determinado.</p>
+                                </div>
+                                <div class="p-4 bg-slate-900/60 rounded-xl border border-slate-800">
+                                    <h4 class="text-sky-400 font-bold text-xs uppercase mb-1">Comercio Externo</h4>
+                                    <p class="text-slate-400 text-[11px] leading-relaxed">Transacciones internacionales entre estados soberanos (importaciones de entrada y exportaciones de salida).</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-6">
+                            <div class="bg-darkCard border border-slate-800 p-6 rounded-2xl relative">
+                                <h4 class="font-bold text-lg text-white mb-2">Ventajas Clave del Comercio</h4>
+                                <ul class="space-y-2.5 text-xs text-slate-300">
+                                    <li class="flex items-start gap-2">
+                                        <i class="fa-solid fa-check text-emerald-400 shrink-0 mt-0.5"></i>
+                                        <span>Permite acceder a bienes no manufacturables a nivel local.</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <i class="fa-solid fa-check text-emerald-400 shrink-0 mt-0.5"></i>
+                                        <span>Fomenta la sana competencia, bajando los precios de venta generales.</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <i class="fa-solid fa-check text-emerald-400 shrink-0 mt-0.5"></i>
+                                        <span>Atrae inversión extranjera directa y capitales logísticos.</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                `
+            }
+        };
+
+        // Complete robust bank of 20 high-fidelity actual multiple-choice questions
+        const quizQuestions = [
+            {
+                q: "1. ¿De cuáles términos de la lengua griega se deriva originalmente la palabra 'Economía'?",
+                options: [
+                    "A. Nomos y Polis (Leyes de la ciudad)",
+                    "B. Oikos y Nomos (Administración del hogar/patrimonio)",
+                    "C. Oikos y Kratos (Poder absoluto sobre la casa)",
+                    "D. Moneda y Escasez"
+                ],
+                correct: 1,
+                exp: "La etimología de la palabra Economía se compone de 'Oikos' (casa o patrimonio) y 'Nomos' (regla o administración). Juntos representan la adecuada gestión de los bienes de un hogar."
+            },
+            {
+                q: "2. ¿Cuál es el problema fundamental que aborda el estudio de la ciencia económica?",
+                options: [
+                    "A. La acumulación ilimitada de divisas físicas",
+                    "B. La falta de materias primas metálicas",
+                    "C. El conflicto entre necesidades ilimitadas y recursos escasos",
+                    "D. El control de las aduanas nacionales"
+                ],
+                correct: 2,
+                exp: "La escasez es el motor de la economía: las necesidades de las sociedades son infinitas y dinámicas, mientras que los recursos para fabricarlas son intrínsecamente limitados."
+            },
+            {
+                q: "3. ¿De qué se encarga de manera detallada la rama de la 'Microeconomía'?",
+                options: [
+                    "A. Analizar variables globales como la inflación o el Producto Interno de un continente",
+                    "B. Estudiar de manera individual las decisiones de las familias, consumidores individuales y corporaciones",
+                    "C. Controlar los presupuestos del banco central del país",
+                    "D. Estudiar la producción agrícola del mundo"
+                ],
+                correct: 1,
+                exp: "La microeconomía enfoca su lupa de análisis en la conducta de agentes individuales (familias, empresas, mercados de bienes de forma aislada) y sus interacciones."
+            },
+            {
+                q: "4. ¿Cuál de los siguientes es un ejemplo clásico de una variable de estudio macroeconómica?",
+                options: [
+                    "A. El costo mensual de la canasta básica de una sola familia",
+                    "B. El precio de la cebolla roja en un mercado local de la provincia",
+                    "C. La tasa de inflación nacional interanual del país",
+                    "D. El sueldo de un cajero de una distribuidora de alimentos"
+                ],
+                correct: 2,
+                exp: "La tasa de inflación nacional representa el encarecimiento general de la canasta económica agregada de todo un estado, por ende, es una variable de estudio macroeconómico."
+            },
+            {
+                q: "5. ¿Cuáles son los cuatro factores clásicos y modernos requeridos en el proceso de producción?",
+                options: [
+                    "A. Dinero, Comercio, Inversión e Impuestos",
+                    "B. Tierra, Trabajo, Capital y Tecnología",
+                    "C. Agricultura, Comercio, Industria y Finanzas",
+                    "D. Estado, Consumidor, Mercado y Moneda"
+                ],
+                correct: 1,
+                exp: "Los factores clásicos de la producción son Tierra (recursos naturales), Trabajo (esfuerzo humano) y Capital (maquinaria). El factor moderno primordial añadido es la Tecnología (el conocimiento)."
+            },
+            {
+                q: "6. ¿Qué compensación o retribución económica recibe tradicionalmente el factor productivo 'Tierra'?",
+                options: [
+                    "A. Un salario mínimo de ley",
+                    "B. Interés devengado",
+                    "C. Renta o Arrendamiento",
+                    "D. Beneficio social"
+                ],
+                correct: 2,
+                exp: "La entrega del uso de parcelas, bosques o recursos naturales extraídos de la tierra a un proceso fabril es retribuido mediante el concepto económico de renta o alquiler."
+            },
+            {
+                q: "7. ¿Cómo se denomina técnicamente al esfuerzo físico o intelectual aportado por el ser humano para producir un bien?",
+                options: [
+                    "A. Capital Intelectual",
+                    "B. Factor Trabajo",
+                    "C. Empleo Informal",
+                    "D. Administración"
+                ],
+                correct: 1,
+                exp: "El trabajo constituye la fuerza y las capacidades mentales y físicas puestas a disposición de la producción de mercancías y servicios por parte de los trabajadores."
+            },
+            {
+                q: "8. El factor 'Capital' dentro de la ciencia económica se refiere a:",
+                options: [
+                    "A. Únicamente las monedas y billetes físicos que posee un país en reserva",
+                    "B. El conjunto de herramientas, edificios, infraestructura y maquinaria para producir riqueza",
+                    "C. La ciudad central de un estado donde reside el gobierno",
+                    "D. La fuerza intelectual de los trabajadores de una corporación"
+                ],
+                correct: 1,
+                exp: "El capital físico representa los bienes duraderos creados por el ser humano que no están destinados al consumo directo, sino a facilitar la producción de nuevos bienes útiles."
+            },
+            {
+                q: "9. ¿Cuál de las 4 preguntas básicas define qué tecnología y combinación de recursos se utilizarán para la producción de bienes?",
+                options: [
+                    "A. ¿Qué producir?",
+                    "B. ¿Cuánto producir?",
+                    "C. ¿Para quién producir?",
+                    "D. ¿Cómo producir?"
+                ],
+                correct: 3,
+                exp: "La pregunta '¿Cómo producir?' determina las técnicas, las herramientas tecnológicas, las materias primas y la optimización de costes para llevar adelante el engranaje productivo."
+            },
+            {
+                q: "10. La pregunta económica de '¿Para quién producir?' se enfoca principalmente en:",
+                options: [
+                    "A. Elegir las zonas geográficas agrícolas",
+                    "B. El reparto y distribución de los productos generados entre la sociedad",
+                    "C. Determinar la maquinaria de ensamblaje automatizado",
+                    "D. Planificar las importaciones aduaneras"
+                ],
+                correct: 1,
+                exp: "El '¿Para quién producir?' tiene que ver con la equidad, el acceso de las clases sociales y los canales comerciales que deciden el destino final de los bienes elaborados."
+            },
+            {
+                q: "11. ¿En qué etapa del proceso económico se transportan los bienes a los diferentes mercados para que los adquieran los compradores?",
+                options: [
+                    "A. Etapa de Producción",
+                    "B. Etapa de Circulación",
+                    "C. Etapa de Distribución",
+                    "D. Etapa de Consumo"
+                ],
+                correct: 1,
+                exp: "La circulación abarca las redes logísticas, bodegas, transporte terrestre o marítimo y colocación de los inventarios en mercados abiertos al intercambio mercantil."
+            },
+            {
+                q: "12. ¿Qué ocurre exactamente durante la etapa de 'Distribución' del proceso económico?",
+                options: [
+                    "A. Se destruyen excedentes alimenticios en aduana",
+                    "B. Se paga el salario a los trabajadores, rentas por el suelo e intereses por el capital invertido",
+                    "C. Los clientes finales degustan de sus mercancías compradas",
+                    "D. Las máquinas transforman los recursos naturales"
+                ],
+                correct: 1,
+                exp: "La etapa de distribución es la fase del reparto de la riqueza generada en las ventas entre todos aquellos que ayudaron a producirla, pagándoles según el factor de producción aportado."
+            },
+            {
+                q: "13. ¿Por qué se dice que el proceso económico es de carácter estrictamente circular?",
+                options: [
+                    "A. Porque la moneda es un círculo metálico tradicional",
+                    "B. Porque el consumo inyecta dinero a las familias para que compren mercancías directamente",
+                    "C. Porque el consumo final inyecta capitales que las empresas usan para iniciar una nueva producción",
+                    "D. Porque todo ocurre dentro de un solo mercado sin salidas de capitales al extranjero"
+                ],
+                correct: 2,
+                exp: "Es un circuito cerrado (Flujo Circular): al consumir bienes, los compradores transfieren recursos financieros a las empresas, las cuales usan ese capital para volver a comprar factores de producción."
+            },
+            {
+                q: "14. ¿Cómo se denomina al flujo comercial que ocurre estrictamente dentro del marco territorial e institucional de un propio país?",
+                options: [
+                    "A. Comercio Externo",
+                    "B. Mercado Agrario de Cooperativa",
+                    "C. Comercio Interno",
+                    "D. TLC (Tratado de Libre Comercio)"
+                ],
+                correct: 2,
+                exp: "El comercio interno o nacional describe la compraventa que se efectúa entre los ciudadanos de una misma demarcación sin cruzar barreras fiscales internacionales."
+            },
+            {
+                q: "15. ¿Qué son las 'Exportaciones' dentro de la contabilidad de la balanza comercial de un país?",
+                options: [
+                    "A. Bienes fabricados en el extranjero e introducidos en el mercado interno",
+                    "B. Impuestos aplicados a los transportes de mercancía",
+                    "C. Mercancías y servicios nacionales vendidos en mercados internacionales",
+                    "D. Ayudas financieras que el Estado regala a familias"
+                ],
+                correct: 2,
+                exp: "Las exportaciones son todos aquellos productos, insumos o servicios que una nación produce de forma local y comercializa con clientes del exterior del país."
+            },
+            {
+                q: "16. El caso analizado de la República de Panamá, que importa automóviles del extranjero porque no posee industrias de manufactura pero exporta servicios logísticos marítimos de alto impacto a través de su Canal, demuestra:",
+                options: [
+                    "A. Que Panamá es una nación que no necesita comerciar internacionalmente",
+                    "B. El fenómeno de la interdependencia económica mundial de los mercados",
+                    "C. La inutilidad de los tratados de comercio bilaterales",
+                    "D. Que la producción agrícola panameña está estancada"
+                ],
+                correct: 1,
+                exp: "El caso panameño ilustra a la perfección el principio de ventajas competitivas e interdependencia: ninguna nación es autosuficiente y el comercio internacional equilibra los vacíos de producción locales."
+            },
+            {
+                q: "17. ¿Cómo asiste la ciencia del 'Derecho' de forma interdisciplinaria a la Economía?",
+                options: [
+                    "A. Provee datos matemáticos para graficar fluctuaciones de inflación",
+                    "B. Analiza la psicología de los consumidores masivos en épocas de crisis",
+                    "C. Establece un marco regulador e institucional firme (leyes, contratos y propiedad) que asegura transacciones justas",
+                    "D. Señala las rutas geográficas de distribución de combustible"
+                ],
+                correct: 2,
+                exp: "El Derecho dota a la sociedad del cuerpo normativo y la certeza legal que faculta a los agentes económicos a firmar contratos, hacer inversiones y asegurar sus derechos de propiedad de forma pacífica."
+            },
+            {
+                q: "18. ¿Cómo asiste la ciencia de la 'Estadística' a las mediciones económicas?",
+                options: [
+                    "A. Diseña las campañas de marketing corporativo para las empresas",
+                    "B. Permite la recolección y medición estructurada de datos empíricos para evaluar el PIB o tasas de pobreza",
+                    "C. Resuelve dilemas éticos y morales de la fuerza laboral",
+                    "D. Controla las leyes constitucionales"
+                ],
+                correct: 1,
+                exp: "La estadística ofrece la base matemática para recoger, tabular, procesar y presentar cuantitativamente datos económicos reales a nivel público o privado."
+            },
+            {
+                q: "19. Si un país decidiera cerrarse por completo y no participar en ningún tipo de comercio exterior, ¿cómo afectaría esto la calidad de vida de su población de forma teórica?",
+                options: [
+                    "A. Se incrementaría de inmediato el bienestar general",
+                    "B. Estarían forzados a consumir únicamente los bienes que se puedan cultivar y fabricar con sus recursos locales",
+                    "C. Desaparecerían de forma total los impuestos de renta",
+                    "D. La tecnología avanzaría más rápido de forma interna"
+                ],
+                correct: 1,
+                exp: "A este aislamiento se le conoce técnicamente como autarquía comercial. Limita a la sociedad a la disponibilidad estricta de sus materias primas locales, lo que frena enormemente la variedad y eficiencia del consumo."
+            },
+            {
+                q: "20. ¿Qué se entiende tradicionalmente por 'Balanza de Pagos' en la macroeconomía de un país?",
+                options: [
+                    "A. La diferencia entre las exportaciones e importaciones de una nación registradas financieramente",
+                    "B. La deuda agregada de todas las empresas privadas",
+                    "C. El total de dinero físico depositado por las familias en los bancos de ahorro",
+                    "D. La tarifa cobrada por transitar en las autopistas"
+                ],
+                correct: 0,
+                exp: "La balanza comercial (parte de la balanza de pagos) registra el valor neto de los bienes exportados de cara a los importados de forma temporal por el estado."
+            }
+        ];
+
+        // Global State variables
+        let currentTab = 'home';
+        let viewedModules = new Set();
+        let userScore = 0;
+        
+        // Quiz State variables
+        let quizActiveIndex = 0;
+        let quizScore = 0;
+        let answeredCurrent = false;
+
+        // On Load Trigger
+        window.addEventListener('DOMContentLoaded', () => {
+            switchTab('home');
+            updateSidebarProgress();
+        });
+
+        // Function to handle switching tabs smoothly
+        function switchTab(tabId) {
+            currentTab = tabId;
+            
+            // Hide all screens
+            document.querySelectorAll('section').forEach(section => {
+                section.classList.add('hidden');
+            });
+
+            // Remove active classes from navigation sidebar
+            document.querySelectorAll('aside nav button').forEach(btn => {
+                btn.classList.remove('bg-emerald-500', 'text-darkBg', 'font-extrabold', 'shadow-md');
+                btn.classList.add('text-slate-300');
+            });
+
+            // Show current screen
+            const targetScreen = document.getElementById(`screen-${tabId}`);
+            if (targetScreen) {
+                targetScreen.classList.remove('hidden');
+            }
+
+            // Set screen title on topbar
+            const titleMap = {
+                'home': 'Pantalla de Inicio',
+                'menu': 'Módulos Interactivos',
+                'summary': 'Resúmenes de Síntesis',
+                'extras': 'Sección Extras y Profundización',
+                'quiz-intro': 'Evaluación Final',
+                'quiz-active': 'Examen en Progreso',
+                'quiz-result': 'Resultados de Evaluación'
+            };
+            document.getElementById('current-screen-title').innerText = titleMap[tabId] || 'EcoApp';
+
+            // Active State sidebar styling
+            let navBtnId = '';
+            if (tabId === 'home') navBtnId = 'nav-home';
+            else if (tabId === 'menu' || tabId === 'module-viewer') navBtnId = 'nav-menu';
+            else if (tabId === 'summary') navBtnId = 'nav-summary';
+            else if (tabId === 'extras') navBtnId = 'nav-extras';
+            else if (tabId.startsWith('quiz')) navBtnId = 'nav-quiz';
+
+            const activeBtn = document.getElementById(navBtnId);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-slate-300');
+                activeBtn.classList.add('bg-emerald-500', 'text-darkBg', 'font-extrabold', 'shadow-md');
+            }
+        }
+
+        // Functions to handle modules dynamic view
+        let activeModuleId = 1;
+
+        function openModule(moduleId) {
+            activeModuleId = parseInt(moduleId);
+            viewedModules.add(activeModuleId);
+            
+            // Add score bonus for exploring modules (encouragement mechanic)
+            addScore(100);
+
+            updateSidebarProgress();
+            renderModuleContent();
+            switchTab('module-viewer');
+        }
+
+        function renderModuleContent() {
+            const data = modulesData[activeModuleId];
+            if (!data) return;
+
+            document.getElementById('mod-viewer-tracker').innerText = `Módulo ${activeModuleId} / 5`;
+            
+            // Update disabled status of previous/next module buttons
+            document.getElementById('btn-prev-mod').disabled = activeModuleId === 1;
+            document.getElementById('btn-next-mod').disabled = activeModuleId === 5;
+
+            // Wire up navigation actions on standard buttons
+            document.getElementById('btn-prev-mod').onclick = () => openModule(activeModuleId - 1);
+            document.getElementById('btn-next-mod').onclick = () => openModule(activeModuleId + 1);
+
+            let compiledHtml = `
+                <div class="space-y-4">
+                    <h2 class="text-3xl font-extrabold text-white">${data.title}</h2>
+                    <div class="h-1 w-20 bg-accentGreen rounded"></div>
+                </div>
+                
+                <div class="fade-in">
+                    ${data.content}
+                </div>
+
+                <!-- Inner module footer nav -->
+                <div class="flex flex-col sm:flex-row gap-4 items-center justify-between border-t border-slate-800/80 pt-6">
+                    <button onclick="switchTab('menu')" class="px-5 py-2.5 bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 font-bold rounded-xl text-xs transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-grid-view"></i> Catálogo Completo
+                    </button>
+                    ${activeModuleId < 5 ? `
+                        <button onclick="openModule(${activeModuleId + 1})" class="px-6 py-2.5 bg-accentGreen hover:bg-emerald-400 text-darkBg font-extrabold rounded-xl text-xs transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/10">
+                            Siguiente Módulo <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    ` : `
+                        <button onclick="switchTab('quiz-intro')" class="px-6 py-2.5 bg-accentGreen hover:bg-emerald-400 text-darkBg font-extrabold rounded-xl text-xs transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/10">
+                            Ir al Examen Final <i class="fa-solid fa-graduation-cap"></i>
+                        </button>
+                    `}
+                </div>
+            `;
+
+            document.getElementById('module-dynamic-content').innerHTML = compiledHtml;
+        }
+
+        // Handle points mechanics
+        function addScore(amount) {
+            userScore += amount;
+            document.getElementById('global-score-badge').innerText = `Score: ${userScore} pts`;
+        }
+
+        // Calculate progress general bar
+        function updateSidebarProgress() {
+            // Formula: Modules viewed weight 50%, Quiz completed weight 50%
+            let modulesRatio = (viewedModules.size / 5) * 50;
+            let quizRatio = (quizScore / (20 * 100)) * 50; // Max points is 20 * 100 = 2000
+            
+            let totalRatio = Math.round(modulesRatio + quizRatio);
+            if (totalRatio > 100) totalRatio = 100;
+
+            document.getElementById('sidebar-progress-percent').innerText = `${totalRatio}%`;
+            document.getElementById('sidebar-progress-bar').style.width = `${totalRatio}%`;
+
+            // Menu badge update
+            document.getElementById('modules-progress-badge').innerText = `${viewedModules.size} / 5 Vistos`;
+            
+            // Check cards seen and update their badge labels inside Menu screen
+            for (let i = 1; i <= 5; i++) {
+                const badge = document.getElementById(`badge-mod-${i}`);
+                if (badge) {
+                    if (viewedModules.has(i)) {
+                        badge.innerText = "Leído";
+                        badge.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 uppercase";
+                    } else {
+                        badge.innerText = "Sin iniciar";
+                        badge.className = "text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 uppercase";
+                    }
+                }
+            }
+        }
+
+        // QUIZ STATE ENGINE CONTROLLER
+        function startQuiz() {
+            quizActiveIndex = 0;
+            quizScore = 0;
+            answeredCurrent = false;
+            switchTab('quiz-active');
+            renderQuizQuestion();
+        }
+
+        function renderQuizQuestion() {
+            answeredCurrent = false;
+            const qData = quizQuestions[quizActiveIndex];
+            
+            // Reset Action button to inactive verification state
+            const actionBtn = document.getElementById('quiz-action-btn');
+            actionBtn.innerText = "Verificar Respuesta";
+            actionBtn.disabled = true;
+            actionBtn.className = "px-6 py-3 bg-slate-800 text-slate-500 font-bold rounded-xl border border-slate-700/50 cursor-not-allowed transition-all flex items-center gap-2";
+
+            // Hide Feedback Box
+            const feedbackBox = document.getElementById('quiz-feedback-box');
+            feedbackBox.className = "hidden p-5 rounded-xl border transition-all duration-350 space-y-2";
+
+            // Counters
+            document.getElementById('quiz-question-counter').innerText = `PREGUNTA ${quizActiveIndex + 1} DE 20`;
+            document.getElementById('quiz-live-score').innerText = `PUNTAJE: ${quizScore} pts`;
+            
+            let percentage = ((quizActiveIndex) / 20) * 100;
+            document.getElementById('quiz-progress-fill').style.width = `${percentage}%`;
+
+            // Set Title text
+            document.getElementById('quiz-question-text').innerText = qData.q;
+
+            // Render Choices Options
+            const optionsContainer = document.getElementById('quiz-options-container');
+            optionsContainer.innerHTML = '';
+
+            qData.options.forEach((opt, index) => {
+                const optDiv = document.createElement('div');
+                optDiv.id = `opt-${index}`;
+                optDiv.className = "quiz-option bg-slate-900/40 border border-slate-800 hover:border-slate-750 p-4 rounded-xl cursor-pointer flex justify-between items-center transition-all";
+                optDiv.innerHTML = `
+                    <span class="text-sm text-slate-200">${opt}</span>
+                    <i id="opt-icon-${index}" class="fa-regular fa-circle text-slate-500"></i>
+                `;
+                optDiv.onclick = () => selectQuizOption(index);
+                optionsContainer.appendChild(optDiv);
+            });
+        }
+
+        let selectedOptionIndex = null;
+
+        function selectQuizOption(index) {
+            if (answeredCurrent) return; // Block selecting after verification
+
+            selectedOptionIndex = index;
+            
+            // Clear prior selection styling
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.className = "quiz-option bg-slate-900/40 border border-slate-800 hover:border-slate-750 p-4 rounded-xl cursor-pointer flex justify-between items-center transition-all";
+            });
+            document.querySelectorAll('.quiz-option i').forEach(icon => {
+                icon.className = "fa-regular fa-circle text-slate-500";
+            });
+
+            // Activate current selection
+            const activeCard = document.getElementById(`opt-${index}`);
+            activeCard.className = "quiz-option bg-slate-800/50 border border-accentGreen/50 p-4 rounded-xl cursor-pointer flex justify-between items-center transition-all";
+            
+            const activeIcon = document.getElementById(`opt-icon-${index}`);
+            activeIcon.className = "fa-solid fa-dot-circle text-accentGreen";
+
+            // Enable Verify button
+            const actionBtn = document.getElementById('quiz-action-btn');
+            actionBtn.disabled = false;
+            actionBtn.className = "px-6 py-3 bg-accentGreen hover:bg-emerald-400 text-darkBg font-extrabold rounded-xl shadow-lg shadow-emerald-500/10 cursor-pointer transition-all flex items-center gap-2";
+            actionBtn.onclick = () => verifyCurrentAnswer();
+        }
+
+        function verifyCurrentAnswer() {
+            if (answeredCurrent) return;
+            answeredCurrent = true;
+
+            const qData = quizQuestions[quizActiveIndex];
+            const isCorrect = selectedOptionIndex === qData.correct;
+
+            // Style options based on results
+            qData.options.forEach((opt, index) => {
+                const card = document.getElementById(`opt-${index}`);
+                const icon = document.getElementById(`opt-icon-${index}`);
+                
+                if (index === qData.correct) {
+                    // Always show the correct option highlighted in green
+                    card.className = "quiz-option bg-emerald-950/25 border border-emerald-500 p-4 rounded-xl flex justify-between items-center transition-all";
+                    icon.className = "fa-solid fa-circle-check text-emerald-400";
+                } else if (index === selectedOptionIndex) {
+                    // Show wrong user choice highlighted in red
+                    card.className = "quiz-option bg-rose-950/25 border border-rose-500 p-4 rounded-xl flex justify-between items-center transition-all";
+                    icon.className = "fa-solid fa-circle-xmark text-rose-400";
+                } else {
+                    card.className = "quiz-option bg-slate-900/40 border border-slate-850 opacity-40 p-4 rounded-xl flex justify-between items-center transition-all";
+                    icon.className = "fa-regular fa-circle text-slate-700";
+                }
+            });
+
+            // Render feedback box
+            const feedbackBox = document.getElementById('quiz-feedback-box');
+            const feedbackTitle = document.getElementById('quiz-feedback-title');
+            const feedbackText = document.getElementById('quiz-feedback-text');
+
+            feedbackBox.classList.remove('hidden');
+
+            if (isCorrect) {
+                quizScore += 100;
+                addScore(100);
+                
+                feedbackBox.className = "p-5 rounded-xl border border-emerald-500/20 bg-emerald-950/10 transition-all duration-350 space-y-2";
+                feedbackTitle.className = "font-extrabold text-sm text-emerald-400 flex items-center gap-2";
+                feedbackTitle.innerHTML = `<i class="fa-solid fa-circle-check"></i> ¡Excelente y Correcto! (+100 pts)`;
+            } else {
+                feedbackBox.className = "p-5 rounded-xl border border-rose-500/20 bg-rose-950/10 transition-all duration-350 space-y-2";
+                feedbackTitle.className = "font-extrabold text-sm text-rose-400 flex items-center gap-2";
+                feedbackTitle.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Respuesta Incorrecta (0 pts)`;
+            }
+
+            feedbackText.innerText = qData.exp;
+
+            // Prepare next action
+            const actionBtn = document.getElementById('quiz-action-btn');
+            if (quizActiveIndex < 19) {
+                actionBtn.innerText = "Siguiente Pregunta";
+                actionBtn.onclick = () => {
+                    quizActiveIndex++;
+                    renderQuizQuestion();
+                };
+            } else {
+                actionBtn.innerText = "Finalizar y Ver Resultados";
+                actionBtn.onclick = () => finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            switchTab('quiz-result');
+            
+            document.getElementById('quiz-final-score').innerText = `${quizScore} pts`;
+            
+            let efficiency = Math.round((quizScore / 2000) * 100);
+            document.getElementById('quiz-final-efficiency').innerText = `${efficiency}%`;
+            
+            if (efficiency >= 80) {
+                document.getElementById('quiz-final-efficiency').className = "text-3xl md:text-4xl font-extrabold text-accentGreen";
+            } else if (efficiency >= 60) {
+                document.getElementById('quiz-final-efficiency').className = "text-3xl md:text-4xl font-extrabold text-amber-400";
+            } else {
+                document.getElementById('quiz-final-efficiency').className = "text-3xl md:text-4xl font-extrabold text-rose-500";
+            }
+
+            updateSidebarProgress();
+        }
+    </script>
+</body>
+</html>
